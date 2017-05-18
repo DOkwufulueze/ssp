@@ -78,7 +78,8 @@ if [[ "$#" -gt 0 ]]; then
         nextOption="$1";
         case "${nextOption}" in
           - | -- | £ | \$ | \% | ^ | \& | \* | \( | \) | _ | = | \+ | \@ | \~ | \# | " " | [0-9]+ )
-            echo "Invalid Service Name Supplied"
+            echo "Invalid Service Name Supplied";
+            exit 1;
           ;;
 
           *)
@@ -139,7 +140,7 @@ if [[ "$#" -gt 0 ]]; then
 
       *)
         echo "Please supply a valid option";
-        exit;
+        exit 1;
       ;;
     esac
 
