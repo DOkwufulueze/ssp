@@ -1,0 +1,150 @@
+#!/bin/bash
+
+helpText=;
+
+function serviceStatus() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  sudo systemctl status "${serviceName}";
+}
+
+function fullEditService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  sudo systemctl edit --full "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function enableService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  sudo systemctl enable "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function disableService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  sudo systemctl disable "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function startService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  sudo systemctl start "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function restartService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  sudo systemctl restart "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function stopService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  sudo systemctl stop "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function removeService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  stopService "${serviceName}" && disableService "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function reAddService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  enableService "${serviceName}" && startService "${serviceName}" && serviceStatus "${serviceName}";
+}
+
+function reDoService() {
+  local serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+  stopService "${serviceName}" && disableService "${serviceName}" && fullEditService "${serviceName}" && enableService "${serviceName}" && startService "${serviceName}" && serviceStatus "${serviceName}"
+}
+
+function displayHowToUse() {
+  helpText=$(cat << EOF
+          Systemd Service Process
+EOF
+);
+}
+
+if [[ "$#" -gt 0 ]]; then
+  while [[ "$1" != "" ]]; do
+    currentOption="$1";
+    case "${currentOption}" in
+      --status )
+        shift;
+        nextOption="$1";
+        case "${nextOption}" in
+          - | -- | £ | \$ | \% | ^ | \& | \* | \( | \) | _ | = | \+ | \@ | \~ | \# | " " | [0-9]+ )
+            echo "Invalid Service Name Supplied"
+          ;;
+
+          *)
+            serviceStatus "${nextOption}";
+          ;;
+        esac
+      ;;
+
+      --full-edit )
+        shift;
+        fullEditService "$1";
+      ;;
+
+      --enable )
+        shift;
+        enableService "$1";
+      ;;
+
+      --disable )
+        shift;
+        disableService "$1";
+      ;;
+
+      --start )
+        shift;
+        startService "$1";
+      ;;
+
+      --restart )
+        shift;
+        restartService "$1";
+      ;;
+
+      --stop )
+        shift;
+        stopService "$1";
+      ;;
+
+      --remove )
+        shift;
+        removeService "$1";
+      ;;
+
+      --re-add )
+        shift;
+        reAddService "$1";
+      ;;
+
+      --redo )
+        shift;
+        reDoService "$1";
+      ;;
+
+      --help | -h )
+        displayHowToUse;
+        echo "${helpText}" | less;
+      ;;
+
+      *)
+        echo "Please supply a valid option";
+        exit;
+      ;;
+    esac
+
+    shift;
+  done
+else
+  echo "Please supply arguments to ssp. Type ssp --help to see usage."
+fi
