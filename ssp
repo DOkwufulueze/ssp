@@ -1,70 +1,58 @@
 #!/bin/bash
 
 helpText=;
+serviceName=;
+
+function setServiceName() {
+  serviceName="$1";
+  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
+}
 
 function serviceStatus() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
-  sudo systemctl status "${serviceName}";
+  systemctl status "${serviceName}";
 }
 
 function fullEditService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
-  sudo systemctl edit --full "${serviceName}" && serviceStatus "${serviceName}";
+  systemctl edit --full "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function enableService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
-  sudo systemctl enable "${serviceName}" && serviceStatus "${serviceName}";
+  systemctl enable "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function disableService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
-  sudo systemctl disable "${serviceName}" && serviceStatus "${serviceName}";
+  systemctl disable "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function startService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
-  sudo systemctl start "${serviceName}" && serviceStatus "${serviceName}";
+  systemctl start "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function restartService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
-  sudo systemctl restart "${serviceName}" && serviceStatus "${serviceName}";
+  systemctl restart "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function stopService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
-  sudo systemctl stop "${serviceName}" && serviceStatus "${serviceName}";
+  systemctl stop "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function removeService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
   stopService "${serviceName}" && disableService "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function reAddService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
   enableService "${serviceName}" && startService "${serviceName}" && serviceStatus "${serviceName}";
 }
 
 function reDoService() {
-  local serviceName="$1";
-  [[ "${serviceName}" =~ ".service" ]] || serviceName="${serviceName}.service";
   stopService "${serviceName}" && disableService "${serviceName}" && fullEditService "${serviceName}" && enableService "${serviceName}" && startService "${serviceName}" && serviceStatus "${serviceName}"
 }
 
 function displayHowToUse() {
   helpText=$(cat << EOF
           Systemd Service Process
+
+          You may need to sudo this script depeneding on the access level of your systemd services.
 EOF
 );
 }
@@ -83,54 +71,64 @@ if [[ "$#" -gt 0 ]]; then
           ;;
 
           *)
-            serviceStatus "${nextOption}";
+            setServiceName "${nextOption}";
+            serviceStatus;
           ;;
         esac
       ;;
 
       --full-edit )
         shift;
-        fullEditService "$1";
+        setServiceName "$1";
+        fullEditService;
       ;;
 
       --enable )
         shift;
-        enableService "$1";
+        setServiceName "$1";
+        enableService;
       ;;
 
       --disable )
         shift;
-        disableService "$1";
+        setServiceName "$1";
+        disableService;
       ;;
 
       --start )
         shift;
-        startService "$1";
+        setServiceName "$1";
+        startService;
       ;;
 
       --restart )
         shift;
-        restartService "$1";
+        setServiceName "$1";
+        restartService;
       ;;
 
       --stop )
         shift;
-        stopService "$1";
+        setServiceName "$1";
+        stopService;
       ;;
 
       --remove )
         shift;
-        removeService "$1";
+        setServiceName "$1";
+        removeService;
       ;;
 
       --re-add )
         shift;
-        reAddService "$1";
+        setServiceName "$1";
+        reAddService;
       ;;
 
       --redo )
         shift;
-        reDoService "$1";
+        setServiceName "$1";
+        reDoService;
       ;;
 
       --help | -h )
